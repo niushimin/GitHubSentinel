@@ -22,18 +22,25 @@ def export_progress_by_date_range(repo, days):
     return report, report_file_path  # 返回报告内容和报告文件路径
 
 # 创建Gradio界面
-demo = gr.Interface(
-    fn=export_progress_by_date_range,  # 指定界面调用的函数
-    title="GitHubSentinel",  # 设置界面标题
-    inputs=[
-        gr.Dropdown(
+with gr.Blocks(title="GitHubSentinel", css=".gradio-container {width: 800px;}") as demo:  # 设置界面标题
+    with gr.Row(): # 将输入组件放置在一行
+        dropdown = gr.Dropdown(
             subscription_manager.list_subscriptions(), label="订阅列表", info="已订阅GitHub项目"
-        ),  # 下拉菜单选择订阅的GitHub项目
-        gr.Slider(value=2, minimum=1, maximum=7, step=1, label="报告周期", info="生成项目过去一段时间进展，单位：天"),
-        # 滑动条选择报告的时间范围
-    ],
-    outputs=[gr.Markdown(), gr.File(label="下载报告")],  # 输出格式：Markdown文本和文件下载
-)
+        )
+        slider = gr.Slider(
+            value=2, minimum=1, maximum=7, step=1, label="报告周期", info="生成项目过去一段时间进展，单位：天"
+        )
+
+    markdown_output = gr.Markdown()
+    file_output = gr.File(label="下载报告")
+
+    generate_button = gr.Button("生成报告") # 添加一个按钮触发函数
+
+    generate_button.click(
+        fn=export_progress_by_date_range,
+        inputs=[dropdown, slider],
+        outputs=[markdown_output, file_output],
+    )
 
 if __name__ == "__main__":
     demo.launch(share=True, server_name="0.0.0.0")  # 启动界面并设置为公共可访问
